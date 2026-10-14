@@ -1,0 +1,1 @@
+import { NextResponse } from "next/server";export async function GET(){return NextResponse.json({status:"ok",app:"el-refugio",phase:2,integrations:{firebaseAdmin:Boolean(process.env.FIREBASE_SERVICE_ACCOUNT_BASE64),firebaseClient:Boolean(process.env.NEXT_PUBLIC_FIREBASE_API_KEY&&process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL)}})}

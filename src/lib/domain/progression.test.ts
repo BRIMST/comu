@@ -1,0 +1,3 @@
+import { describe, expect, it } from "vitest";
+import { levelForXp, levelProgress, xpForNextLevel } from "./progression";
+describe("progression calculations",()=>{it("starts at level one",()=>expect(levelForXp(0)).toBe(1));it("levels up at thresholds",()=>{expect(levelForXp(99)).toBe(1);expect(levelForXp(100)).toBe(2);expect(levelForXp(400)).toBe(3)});it("calculates progress within a level",()=>expect(levelProgress(150)).toEqual({level:2,current:50,needed:300,percent:16}));it("handles invalid XP safely",()=>expect(levelForXp(-1)).toBe(1));it("returns threshold",()=>expect(xpForNextLevel(3)).toBe(900));});

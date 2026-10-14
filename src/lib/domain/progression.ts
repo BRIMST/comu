@@ -1,0 +1,3 @@
+export function levelForXp(xp: number): number { if (!Number.isFinite(xp) || xp < 0) return 1; return Math.floor(Math.sqrt(xp / 100)) + 1; }
+export function xpForNextLevel(level: number): number { return Math.max(0, level) ** 2 * 100; }
+export function levelProgress(xp: number): { level:number; current:number; needed:number; percent:number } { const safe=Math.max(0,Math.floor(xp)); const level=levelForXp(safe); const start=(level-1)**2*100; const end=level**2*100; const needed=end-start; const current=safe-start; return {level,current,needed,percent:Math.min(100,Math.floor(current/needed*100))}; }

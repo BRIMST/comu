@@ -1,0 +1,2 @@
+import { NextResponse } from "next/server";import { adminDb } from "@/lib/server/firebase-admin";
+export async function GET(){try{const snap=await adminDb().ref("leaderboards/weekly").orderByChild("xp").limitToLast(50).get();const rows=snap.exists()?Object.values(snap.val() as Record<string,{username:string;xp:number;uid?:string}>).reverse():[];return NextResponse.json({entries:rows.map(({username,xp})=>({username,xp}))})}catch{return NextResponse.json({entries:[],configured:false})}}
