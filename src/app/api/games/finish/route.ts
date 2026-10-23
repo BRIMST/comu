@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentUser } from "@/lib/server/session";
 import { adminDb } from "@/lib/server/firebase-admin";
-import { levelForXp } from "@/lib/domain/progression";
+import { services } from "@/lib/server/services";
 
 const schema = z.object({
   sessionId: z.string().min(10).max(100),
@@ -131,42 +131,15 @@ export async function POST(req: Request) {
     );
   }
 
-  if (valid) {
-    xp = session.game === "trivia" ? 15 : 10;
-    coins = session.game === "trivia" ? 8 : 5;
-
-    const walletRef = db.ref(`wallets/${user.uid}`);
-    await walletRef.transaction((w) => ({
-      balance: Math.max(0, Number(w?.balance ?? 0)) + coins,
-      updatedAt: now,
-    }));
-
-    const profileRef = db.ref(`profiles/${user.uid}`);
-    let updatedXp = 0;
-    await profileRef.transaction((p) => {
-      if (!p) return p;
-      updatedXp = Number(p.xp ?? 0) + xp;
-      return {
-        ...p,
-        xp: updatedXp,
-        level: levelForXp(updatedXp),
-        updatedAt: now,
-      };
+  // Recompensas, topes diarios, rachas, misiones, insignias y rankings: todo en el servicio de progreso (idempotente por partida).
+  try {
+    const reactionMs = session.game === "reflejos" && typeof parsed.data.answer === "number" ? parsed.data.answer : undefined;
+    const r = await services().progress.recordEvent(user.uid, {
+      type: "game", key: parsed.data.sessionId, game: session.game as "memoria" | "trivia" | "reflejos", valid, score, ...(reactionMs !== undefined ? { reactionMs } : {}),
     });
-
-    await db.ref(`walletTransactions/${user.uid}/${parsed.data.sessionId}`).set({
-      amount: coins,
-      type: "game_reward",
-      description: `Recompensa: ${session.game}`,
-      createdAt: now,
-      sessionId: parsed.data.sessionId,
-    });
-
-    await db.ref(`leaderboards/weekly/${user.uid}`).transaction((row) => ({
-      username: String(row?.username ?? user.uid.slice(0, 8)),
-      xp: Number(row?.xp ?? 0) + xp,
-      updatedAt: now,
-    }));
+    xp = r.xp; coins = r.coins;
+  } catch (e) {
+    console.error("progress_error", e instanceof Error ? e.message : "unknown");
   }
 
   return NextResponse.json({
@@ -175,8 +148,8 @@ export async function POST(req: Request) {
     score,
     xp,
     coins,
-    message: valid
-      ? "¡Resultado validado! Recompensas añadidas."
-      : "Partida registrada. Esta vez no hubo recompensa.",
+    message: !valid
+      ? "Partida registrada. Esta vez no hubo recompensa."
+      : xp + coins > 0 ? "¡Resultado validado! Recompensas añadidas." : "¡Resultado validado! Alcanzaste el tope diario de recompensas; vuelve mañana.",
   });
 }

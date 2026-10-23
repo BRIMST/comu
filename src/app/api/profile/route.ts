@@ -1,4 +1,19 @@
-import { NextResponse } from "next/server";import { z } from "zod";import { currentUser } from "@/lib/server/session";import { adminDb } from "@/lib/server/firebase-admin";
-const schema=z.object({displayName:z.string().trim().min(2).max(40),bio:z.string().trim().max(180).default(""),avatar:z.string().min(1).max(8),showInRanking:z.boolean(),showActivity:z.boolean()});
-export async function GET(){const user=await currentUser();if(!user)return NextResponse.json({error:"No autenticado"},{status:401});const snap=await adminDb().ref(`profiles/${user.uid}`).get();return NextResponse.json({profile:snap.val()??null})}
-export async function PATCH(req:Request){const user=await currentUser();if(!user)return NextResponse.json({error:"No autenticado"},{status:401});const parsed=schema.safeParse(await req.json());if(!parsed.success)return NextResponse.json({error:"Datos de perfil no válidos"},{status:400});const db=adminDb();const now=Date.now();await db.ref().update({[`profiles/${user.uid}/displayName`]:parsed.data.displayName,[`profiles/${user.uid}/bio`]:parsed.data.bio,[`profiles/${user.uid}/avatar`]:parsed.data.avatar,[`profiles/${user.uid}/privacy/showInRanking`]:parsed.data.showInRanking,[`profiles/${user.uid}/privacy/showActivity`]:parsed.data.showActivity,[`profiles/${user.uid}/updatedAt`]:now,[`publicProfiles/${user.uid}/displayName`]:parsed.data.displayName,[`publicProfiles/${user.uid}/bio`]:parsed.data.showActivity?parsed.data.bio:"",[`publicProfiles/${user.uid}/avatar`]:parsed.data.avatar,[`publicProfiles/${user.uid}/showInRanking`]:parsed.data.showInRanking,[`publicProfiles/${user.uid}/showActivity`]:parsed.data.showActivity,[`publicProfiles/${user.uid}/updatedAt`]:now});return NextResponse.json({ok:true})}
+import { NextResponse } from "next/server";
+import { currentUser } from "@/lib/server/session";
+import { services } from "@/lib/server/services";
+import { fail, sameOrigin } from "@/lib/server/http";
+
+export async function GET() {
+  const user = await currentUser();
+  if (!user) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  const { store } = services();
+  const profile = await store.get<{ username?: string }>(`profiles/${user.uid}`);
+  return NextResponse.json({ profile: profile ?? null });
+}
+
+export async function PATCH(req: Request) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
+  const user = await currentUser();
+  if (!user) return NextResponse.json({ error: "No autenticado" }, { status: 401 });
+  try { await services().profiles.update(user.uid, await req.json().catch(() => null)); return NextResponse.json({ ok: true }); } catch (e) { return fail(e); }
+}

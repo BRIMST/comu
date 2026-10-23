@@ -2,6 +2,10 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { currentUser } from "@/lib/server/session";
 import { adminDb } from "@/lib/server/firebase-admin";
+import { adminStore } from "@/lib/server/store-admin";
+import { assertFeature, getGameConfig } from "@/lib/server/settings";
+import { rateLimit } from "@/lib/server/rate-limit";
+import { fail, sameOrigin } from "@/lib/server/http";
 const schema = z.object({ game: z.enum(["reflejos", "memoria", "trivia"]) });
 const symbols = ["🌙", "⭐", "🍀", "🔥", "💎", "🎮", "🪐", "🦊"];
 const questions = [
@@ -10,11 +14,18 @@ const questions = [
   { prompt: "¿Las donaciones deben dar ventajas competitivas?", options: ["Sí, siempre", "Solo en el ranking", "No", "Solo si son grandes"], answer: 2 },
 ];
 export async function POST(req: Request) {
+  if (!sameOrigin(req)) return NextResponse.json({ error: "Origen no permitido." }, { status: 403 });
   const user = await currentUser();
   if (!user) return NextResponse.json({ error: "Inicia sesión para jugar." }, { status: 401 });
   const parsed = schema.safeParse(await req.json());
   if (!parsed.success) return NextResponse.json({ error: "Minijuego no válido." }, { status: 400 });
   const game = parsed.data.game;
+  try {
+    const store = adminStore();
+    await assertFeature(store, "games");
+    if (!(await getGameConfig(store))[game].enabled) return NextResponse.json({ error: "Este minijuego está desactivado temporalmente." }, { status: 503 });
+    await rateLimit(store, Date.now(), user.uid, "game_start", 40, 10 * 60 * 1000);
+  } catch (e) { return fail(e); }
   const db = adminDb();
   const ref = db.ref("gameSessions").push();
   const startedAt = Date.now();

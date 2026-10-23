@@ -1,1 +1,48 @@
-"use client";import {useEffect,useState} from "react";type Entry={username:string;xp:number};const sample=[{username:"LunaPixel",xp:2840},{username:"FoxByte",xp:2120},{username:"GreenGG",xp:1760},{username:"NekoNova",xp:1410},{username:"ByteRider",xp:990}];export default function Ranking(){const[entries,setEntries]=useState<Entry[]>(sample);const[real,setReal]=useState(false);useEffect(()=>{fetch("/api/leaderboard").then(r=>r.json()).then(d=>{if(d.entries?.length){setEntries(d.entries);setReal(true)}}).catch(()=>{})},[]);return <><span className="eyebrow">COMPITE CONTIGO, CELEBRA EN EQUIPO</span><h1 className="title">Ranking de la comunidad</h1><p className="sub">La clasificación celebra la participación y la habilidad, nunca las donaciones.</p><div className="grid grid-3" style={{marginTop:22}}><div className="card"><div className="iconbox">⚡</div><h3>Experiencia semanal</h3><p style={{fontSize:13}}>Sube en la tabla con XP verificada.</p><span className="tag">SEMANAL</span></div><div className="card"><div className="iconbox">🎯</div><h3>Reflejos</h3><p style={{fontSize:13}}>Los mejores tiempos válidos.</p><span className="tag">POR ACTIVAR</span></div><div className="card"><div className="iconbox">🏆</div><h3>Histórico</h3><p style={{fontSize:13}}>Un registro de logros a largo plazo.</p><span className="tag">HISTÓRICO</span></div></div><div className="section-head"><h2>Top de experiencia</h2><span className="tag">{real?"DATOS FIREBASE":"EJEMPLO VISUAL"}</span></div><div className="card"><div className="list">{entries.map((u,i)=><div className="listitem" key={u.username}><span className="ranknum" style={{fontSize:17}}>{String(i+1).padStart(2,"0")}</span><div className="avatar">{["🌙","🦊","🐸","🐱","🤖"][i%5]}</div><div className="grow"><strong>{u.username}</strong><small>{i===0?"En cabeza":`Puesto #${i+1}`}</small></div><div style={{textAlign:"right"}}><strong>{u.xp.toLocaleString("es-CO")} XP</strong><small style={{display:"block",color:"#91a0bd"}}>Experiencia</small></div></div>)}</div>{!real&&<p style={{fontSize:12,marginTop:20}}>Estos datos son de muestra; no representan usuarios reales. El ranking se alimentará con actividad validada en el servidor.</p>}</div></>}
+"use client";
+import { useEffect, useState } from "react";
+import { api } from "@/lib/client-api";
+
+const TABS = [["weekly", "Semana", "Mejores jugadores de la semana (se reinicia cada lunes)"], ["alltime", "Experiencia", "Mayor experiencia acumulada"], ["reaction", "Reflejos", "Mejores tiempos de reacción"],
+  ["wins", "Victorias", "Más retos ganados"], ["active", "Activos", "Seguidores más activos"], ["champions", "Campeones", "Campeones históricos por semana"]] as const;
+type Entry = { rank: number; username: string; avatar: string; value: number; extra?: string };
+type Resp = { board: string; unit: string; entries?: Entry[]; weeks?: { week: string; top: { username: string; xp: number }[] }[] };
+
+export default function Ranking() {
+  const [tab, setTab] = useState<(typeof TABS)[number][0]>("weekly");
+  const [data, setData] = useState<Resp | null>(null);
+  const [err, setErr] = useState("");
+  useEffect(() => { setData(null); setErr(""); api<Resp>(`/api/ranking?board=${tab}`).then(setData).catch((e: Error) => setErr(e.message)); }, [tab]);
+  const desc = TABS.find((t) => t[0] === tab)![2];
+
+  return (
+    <>
+      <span className="eyebrow">COMPITE CONTIGO, CELEBRA EN EQUIPO</span>
+      <h1 className="title">Ranking de la comunidad</h1>
+      <p className="sub">La clasificación celebra la participación y la habilidad, nunca las donaciones. Puedes ocultar tu perfil desde la configuración de privacidad.</p>
+      <div className="row" role="tablist" aria-label="Clasificaciones" style={{ flexWrap: "wrap", marginTop: 20 }}>
+        {TABS.map(([id, label]) => <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? "button primary" : "button"} onClick={() => setTab(id)}>{label}</button>)}
+      </div>
+      <p className="muted" style={{ marginTop: 12, fontSize: 13 }}>{desc}</p>
+      {err && <div className="notice" role="alert" style={{ marginTop: 14 }}>{err}</div>}
+      {!data && !err && <p className="muted" style={{ marginTop: 18 }}>Cargando…</p>}
+
+      {data?.entries && (data.entries.length === 0
+        ? <div className="empty" style={{ marginTop: 14 }}>Todavía no hay nadie en esta tabla. ¡Sé el primero!</div>
+        : <div className="card" style={{ marginTop: 14 }}><div className="list">{data.entries.map((e) => (
+          <div className="listitem" key={e.username}>
+            <span className="ranknum" style={{ fontSize: 17 }}>{String(e.rank).padStart(2, "0")}</span>
+            <div className="avatar" aria-hidden>{e.avatar}</div>
+            <div className="grow"><strong><a href={`/perfil/${e.username}`}>@{e.username}</a></strong><small>{e.rank === 1 ? "En cabeza" : e.extra ?? `Puesto #${e.rank}`}</small></div>
+            <div style={{ textAlign: "right" }}><strong>{e.value.toLocaleString("es-CO")} {data.unit}</strong></div>
+          </div>))}</div></div>)}
+
+      {data?.weeks && (data.weeks.length === 0
+        ? <div className="empty" style={{ marginTop: 14 }}>Los campeones aparecen al terminar cada semana.</div>
+        : <div className="grid grid-3" style={{ marginTop: 14 }}>{data.weeks.map((w) => (
+          <article className="card" key={w.week}><span className="tag">{w.week}</span>
+            <div className="list" style={{ marginTop: 10 }}>{w.top.map((t, i) => (
+              <div className="listitem" key={t.username}><span className="ranknum">{["🥇", "🥈", "🥉"][i]}</span><div className="grow"><strong><a href={`/perfil/${t.username}`}>@{t.username}</a></strong></div><span>{t.xp} XP</span></div>))}</div>
+          </article>))}</div>)}
+    </>
+  );
+}
