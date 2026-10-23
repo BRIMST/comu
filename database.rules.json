@@ -15,8 +15,35 @@
       }
     },
     "leaderboards": {
-      ".read": true,
-      ".write": false
+      ".read": false,
+      ".write": false,
+      "weekly": {
+        "$week": {
+          ".indexOn": [
+            "xp"
+          ]
+        }
+      },
+      "alltime": {
+        ".indexOn": [
+          "xp"
+        ]
+      },
+      "wins": {
+        ".indexOn": [
+          "wins"
+        ]
+      },
+      "reaction": {
+        ".indexOn": [
+          "ms"
+        ]
+      },
+      "active": {
+        ".indexOn": [
+          "days"
+        ]
+      }
     },
     "achievements": {
       ".read": true,
@@ -52,8 +79,203 @@
         ".write": false
       }
     },
+    "challenges": {
+      ".read": false,
+      ".write": false
+    },
+    "challengeSecrets": {
+      ".read": false,
+      ".write": false
+    },
+    "userChallenges": {
+      ".read": false,
+      ".write": false
+    },
+    "rateLimits": {
+      ".read": false,
+      ".write": false
+    },
+    "events": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "startsAt",
+        "createdAt"
+      ]
+    },
+    "polls": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "announcements": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "communityMissions": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "challengeProposals": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "notifications": {
+      "$uid": {
+        ".read": false,
+        ".write": false,
+        ".indexOn": [
+          "createdAt"
+        ]
+      }
+    },
+    "notificationPrefs": {
+      ".read": false,
+      ".write": false
+    },
+    "adminAuditLogs": {
+      ".read": false,
+      ".write": false
+    },
     "siteSettings": {
       ".read": true,
+      ".write": false
+    },
+    "weeklyChampions": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "playerStats": {
+      ".read": false,
+      ".write": false
+    },
+    "playerEvents": {
+      ".read": false,
+      ".write": false
+    },
+    "dailyCaps": {
+      ".read": false,
+      ".write": false
+    },
+    "missions": {
+      ".read": false,
+      ".write": false
+    },
+    "inventory": {
+      ".read": false,
+      ".write": false
+    },
+    "xpLog": {
+      "$uid": {
+        ".read": false,
+        ".write": false,
+        ".indexOn": [
+          "createdAt"
+        ]
+      }
+    },
+    "activity": {
+      "$uid": {
+        ".read": false,
+        ".write": false,
+        ".indexOn": [
+          "createdAt"
+        ]
+      }
+    },
+    "auditFeed": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "communityFeed": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "reports": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "customBadges": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "donations": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "donationGoals": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "donationThanks": {
+      ".read": false,
+      ".write": false,
+      ".indexOn": [
+        "createdAt"
+      ]
+    },
+    "donationEvents": {
+      ".read": false,
+      ".write": false
+    },
+    "goalDonations": {
+      ".read": false,
+      ".write": false
+    },
+    "userDonations": {
+      ".read": false,
+      ".write": false
+    },
+    "manualReferences": {
+      ".read": false,
+      ".write": false
+    },
+    "metrics": {
+      ".read": false,
+      ".write": false
+    },
+    "reportDedupe": {
+      ".read": false,
+      ".write": false
+    },
+    "deletedAccounts": {
+      ".read": false,
+      ".write": false
+    },
+    "adminBonuses": {
+      ".read": false,
       ".write": false
     }
   }

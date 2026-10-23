@@ -1,8 +1,12 @@
-# El Refugio — fases 1 y 2
+# El Refugio — fases 1 a 7
 
 Aplicación Next.js App Router + TypeScript estricto + Tailwind CSS, preparada para Vercel y Firebase Authentication / Realtime Database.
 
-## Estado honesto
+## Estado (fases 1–7)
+Comunidad, minijuegos, retos 1v1 con monedas virtuales, interacción (votaciones, lives, eventos, notificaciones), donaciones voluntarias (Wompi verificado en servidor o registro manual), panel de administración por pestañas (métricas, interruptores, usuarios, reportes, insignias, donaciones, auditoría), cuenta (exportar/eliminar) y páginas legales (borradores). Guías: `docs/DESPLIEGUE.md`, `docs/OPERACIONES.md`, `docs/MODELO_DE_DATOS.md`, `docs/RETOS.md`, `docs/FASE2.md`. Variables: `.env.example`. Pruebas: `npm test`.
+**No probado contra Firebase ni Wompi reales desde este entorno.** Los textos legales requieren revisión profesional.
+
+## Estado honesto (histórico de fases 1–3)
 
 - **Fase 1:** base Next.js, layout responsive, Firebase cliente/Admin, registro, login, verificación por correo, recuperación de contraseña, cookie de sesión HTTP-only, API de salud y reglas iniciales de RTDB.
 - **Panel de administración (configuración inicial):** el nombre visible de la comunidad se cambia en `/admin`; la API exige rol `admin` en custom claims (`admin: true` o `role: "admin"`) o en `users/{uid}/role`. Los cambios quedan en `siteSettings` y se registra auditoría. Para habilitarlo, asigna el rol desde un entorno de confianza; nunca permitas que un usuario se lo asigne a sí mismo.
